@@ -1,0 +1,9 @@
+[package]
+name = "acquire-bot-brad"
+version = "0.1.0"
+authors = ["Michael Alexander <beefsack@gmail.com>"]
+
+[dependencies]
+acquire = { git = "https://github.com/brdgme/acquire.git" }
+brdgme-game = { git = "https://github.com/brdgme/game.git" }
+brdgme-cmd = { git = "https://github.com/brdgme/cmd.git" }
