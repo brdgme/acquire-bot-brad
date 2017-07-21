@@ -1,7 +1,7 @@
 extern crate acquire;
 extern crate brdgme_game;
 
-use acquire::{Game, Phase, PubState};
+use acquire::{Game, Phase, PubState, CanEnd};
 use brdgme_game::command::Spec as CommandSpec;
 use brdgme_game::bot::{Botter, BotCommand};
 
@@ -18,6 +18,10 @@ impl Botter<Game> for Brad {
     ) -> Vec<BotCommand> {
         if pub_state.phase.whose_turn() != player {
             return vec![];
+        }
+        if pub_state.can_end() == CanEnd::True {
+            // Always end it if we can, as it's so rarely advantageous not to.
+            return vec!["end".into()];
         }
         match pub_state.phase {
             Phase::Play(_) => handle_play_phase(player, pub_state),
@@ -36,8 +40,20 @@ impl Botter<Game> for Brad {
 }
 
 fn handle_play_phase(player: usize, pub_state: &PubState) -> Vec<BotCommand> {
+    let available_corps = pub_state.board.available_corps();
     // Consider each tile and give a quality score for each.
-    vec![]
+    let priv_state = pub_state
+        .priv_state
+        .expect("expected to be able to view private state");
+    let mut commands: Vec<BotCommand> = vec![];
+    for t in &priv_state.tiles {
+        let neighbouring_corps = pub_state.board.neighbouring_corps(t);
+        if pub_state.board.loc_neighbours_multiple_safe_corps(t) {
+            // This tile is unplayable, ignore it.
+            continue;
+        }
+    }
+    commands
 }
 
 #[cfg(test)]
