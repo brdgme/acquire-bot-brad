@@ -1,9 +1,6 @@
-extern crate acquire;
-extern crate brdgme_game;
-
 use acquire::{CanEnd, Game, Phase, PlayerState, PubPlayer};
 use acquire::corp::Corp;
-use acquire::board::{Loc, Tile};
+use acquire::board::Tile;
 use brdgme_game::command::Spec as CommandSpec;
 use brdgme_game::bot::{BotCommand, Botter};
 
@@ -17,9 +14,9 @@ impl Botter<Game> for Brad {
         &mut self,
         player: usize,
         player_state: &PlayerState,
-        players: &[String],
-        command_spec: &CommandSpec,
-        game_id: Option<String>,
+        _players: &[String],
+        _command_spec: &CommandSpec,
+        _game_id: Option<String>,
     ) -> Vec<BotCommand> {
         if player_state.public.phase.whose_turn() != player {
             return vec![];
@@ -30,14 +27,14 @@ impl Botter<Game> for Brad {
         }
         match player_state.public.phase {
             Phase::Play(_) => handle_play_phase(player_state),
-            Phase::Buy { remaining, .. } => unimplemented!(),
-            Phase::Found { at, .. } => unimplemented!(),
-            Phase::ChooseMerger { at, .. } => unimplemented!(),
+            Phase::Buy { remaining: _, .. } => unimplemented!(),
+            Phase::Found { at: _, .. } => unimplemented!(),
+            Phase::ChooseMerger { at: _, .. } => unimplemented!(),
             Phase::SellOrTrade {
-                corp,
-                into,
-                at,
-                turn_player,
+                corp: _,
+                into: _,
+                at: _,
+                turn_player: _,
                 ..
             } => unimplemented!(),
         }
@@ -85,13 +82,13 @@ fn handle_play_phase(player_state: &PlayerState) -> Vec<BotCommand> {
             .public
             .board
             .loc_neighbours_multiple_safe_corps(t)
-        {
-            // This tile is unplayable, ignore it.
-            continue;
-        }
+            {
+                // This tile is unplayable, ignore it.
+                continue;
+            }
         if neighbouring_corps.len() > 1 {
             // Merge location
-            let (from, into) = player_state.public.board.merge_candidates(t);
+            let (from, _into) = player_state.public.board.merge_candidates(t);
             // Quality starts quite low as some merges are bad for us (if we have no shares)
             let mut quality: u8 = 0;
             for f in &from {
@@ -135,17 +132,17 @@ fn handle_play_phase(player_state: &PlayerState) -> Vec<BotCommand> {
                 player_state.public.board.get_tile(*n) == Tile::Unincorporated
             })
             .is_some()
-        {
-            // Founding location
-            if available_corps.is_empty() {
-                // Can't found anything at the moment.
-                continue;
-            }
-            commands.push(BotCommand {
-                quality: 200,
-                commands: vec![format!("play {}", t)],
-            });
-        } else {
+            {
+                // Founding location
+                if available_corps.is_empty() {
+                    // Can't found anything at the moment.
+                    continue;
+                }
+                commands.push(BotCommand {
+                    quality: 200,
+                    commands: vec![format!("play {}", t)],
+                });
+            } else {
             // Just a random tile somewhere
             commands.push(BotCommand {
                 quality: 75,
